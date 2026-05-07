@@ -1,9 +1,14 @@
-from django.contrib.auth import get_user_model
 from django.core.paginator import Paginator
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import (
+    get_object_or_404,
+    render,
+    redirect,
+)  # ← добавить redirect
+from django.contrib.auth import get_user_model
 
 from .models import Category
 from .utils import get_published_posts
+from .forms import UserEditForm
 
 
 def index(request):
@@ -57,3 +62,18 @@ def profile(request, username):
             "page_obj": page_obj,
         },
     )
+
+
+def edit_profile(request):
+    if not request.user.is_authenticated:
+        return redirect("login")
+
+    if request.method == "POST":
+        form = UserEditForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect("blog:profile", username=request.user.username)
+    else:
+        form = UserEditForm(instance=request.user)
+
+    return render(request, "blog/user.html", {"form": form})
