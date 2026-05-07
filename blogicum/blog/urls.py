@@ -12,4 +12,5 @@ urlpatterns = [
         name="category_posts",
     ),
     path("posts/<int:post_id>/", views.post_detail, name="post_detail"),
+    path("profile/<str:username>/", views.profile, name="profile"),
 ]

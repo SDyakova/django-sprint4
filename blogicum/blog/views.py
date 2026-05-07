@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, render
 
@@ -39,3 +40,20 @@ def post_detail(request, post_id):
     """Страница отдельной публикации."""
     post = get_object_or_404(get_published_posts(), pk=post_id)
     return render(request, "blog/detail.html", {"post": post})
+
+
+def profile(request, username):
+    User = get_user_model()
+    user = get_object_or_404(User, username=username)
+    post_list = get_published_posts().filter(author=user)
+    paginator = Paginator(post_list, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+    return render(
+        request,
+        "blog/profile.html",
+        {
+            "profile": user,
+            "page_obj": page_obj,
+        },
+    )
