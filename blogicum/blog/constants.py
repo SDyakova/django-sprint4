@@ -1,0 +1,1 @@
+POSTS_ON_MAIN_PAGE = 5
