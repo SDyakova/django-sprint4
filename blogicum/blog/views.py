@@ -1,14 +1,17 @@
+from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, render
 
-from .constants import POSTS_ON_MAIN_PAGE
 from .models import Category
 from .utils import get_published_posts
 
 
 def index(request):
     """Главная страница со списком публикаций."""
-    post_list = get_published_posts()[:POSTS_ON_MAIN_PAGE]
-    return render(request, "blog/index.html", {"post_list": post_list})
+    post_list = get_published_posts()
+    paginator = Paginator(post_list, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+    return render(request, "blog/index.html", {"page_obj": page_obj})
 
 
 def category_posts(request, category_slug):
@@ -19,12 +22,15 @@ def category_posts(request, category_slug):
         is_published=True,
     )
     post_list = get_published_posts(category.posts.all())
+    paginator = Paginator(post_list, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
     return render(
         request,
         "blog/category.html",
         {
             "category": category,
-            "post_list": post_list,
+            "page_obj": page_obj,
         },
     )
 
