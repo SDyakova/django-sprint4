@@ -21,6 +21,16 @@
       {% endblock title %}
     </title>
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <style>
+      .post-image {
+        max-height: 150px;
+        width: auto;
+      }
+      .detail-image {
+        max-height: 400px;
+        width: auto;
+      }
+    </style>
   </head>
   <body>
     {% include "includes/header.html" %}

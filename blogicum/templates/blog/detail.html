@@ -6,6 +6,13 @@
 {% endblock title %}
 {% block content %}
   <article>
+    {% if post.image %}
+      <img src="{{ post.image.url }}"
+           class="img-fluid mb-3 detail-image"
+           alt="{{ post.title }}"
+           width="auto"
+           height="400">
+    {% endif %}
     <p>
       {{ post.pub_date|date:"d E Y" }} |
       {% if post.location and post.location.is_published %}

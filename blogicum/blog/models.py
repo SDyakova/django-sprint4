@@ -67,6 +67,11 @@ class Post(PublishedCreatedModel):
         max_length=256,
     )
     text = models.TextField("Текст")
+    image = models.ImageField(
+        "Изображение",
+        upload_to="posts_images/",
+        blank=True,
+    )
     pub_date = models.DateTimeField(
         "Дата и время публикации",
         help_text=(

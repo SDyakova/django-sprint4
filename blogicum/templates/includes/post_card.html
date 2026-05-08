@@ -1,10 +1,24 @@
 <div class="card" style="width: 40rem;">
   <div class="card-body">
+    {% if post.image %}
+      <img src="{{ post.image.url }}"
+           class="img-fluid mb-3 post-image"
+           alt="{{ post.title }}"
+           width="auto"
+           height="150">
+    {% endif %}
     <h5 class="card-title">{{ post.title }}</h5>
     <h6 class="card-subtitle mb-2 text-muted">
       <small>
-        {{ post.pub_date|date:"d E Y" }} | {% if post.location and post.location.is_published %}{{ post.location.name }}{% else %}Планета Земля{% endif %}<br>
-        От автора @{{ post.author.username }} в категории {% include "includes/category_link.html" %}
+        {{ post.pub_date|date:"d E Y" }} |
+        {% if post.location and post.location.is_published %}
+          {{ post.location.name }}
+        {% else %}
+          Планета Земля
+        {% endif %}
+        <br>
+        От автора @{{ post.author.username }} в категории
+        {% include "includes/category_link.html" %}
       </small>
     </h6>
     <p class="card-text">{{ post.text|truncatewords:10 }}</p>
