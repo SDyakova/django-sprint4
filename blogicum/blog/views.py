@@ -107,3 +107,16 @@ def edit_post(request, post_id):
         form = PostForm(instance=post)
 
     return render(request, "blog/create.html", {"form": form})
+
+
+@login_required
+def delete_post(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+    if post.author != request.user:
+        return redirect("blog:post_detail", post_id=post_id)
+
+    if request.method == "POST":
+        post.delete()
+        return redirect("blog:profile", username=request.user.username)
+
+    return render(request, "blog/create.html", {"post": post})
