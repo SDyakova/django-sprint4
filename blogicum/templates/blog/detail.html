@@ -27,5 +27,11 @@
     </p>
     <h3>{{ post.title }}</h3>
     <p>{{ post.text|linebreaksbr }}</p>
+    {% if user == post.author %}
+      <div class="mt-4">
+        <a href="{% url 'blog:edit_post' post.id %}"
+           class="btn btn-sm btn-outline-primary">Редактировать публикацию</a>
+      </div>
+    {% endif %}
   </article>
 {% endblock content %}

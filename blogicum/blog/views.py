@@ -4,7 +4,7 @@ from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, render, redirect
 
 from .forms import PostForm, UserEditForm
-from .models import Category
+from .models import Category, Post
 from .utils import get_published_posts
 
 User = get_user_model()
@@ -88,4 +88,22 @@ def create_post(request):
             return redirect("blog:profile", username=request.user.username)
     else:
         form = PostForm()
+    return render(request, "blog/create.html", {"form": form})
+
+
+@login_required
+def edit_post(request, post_id):
+    """Редактирование публикации."""
+    post = get_object_or_404(Post, pk=post_id)
+    if post.author != request.user:
+        return redirect("blog:post_detail", post_id=post_id)
+
+    if request.method == "POST":
+        form = PostForm(request.POST, request.FILES, instance=post)
+        if form.is_valid():
+            form.save()
+            return redirect("blog:post_detail", post_id=post_id)
+    else:
+        form = PostForm(instance=post)
+
     return render(request, "blog/create.html", {"form": form})
