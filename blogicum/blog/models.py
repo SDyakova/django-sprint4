@@ -119,6 +119,7 @@ class Comment(PublishedCreatedModel):
         Post,
         on_delete=models.CASCADE,
         verbose_name="Публикация",
+        related_name="comments",
     )
 
     class Meta:

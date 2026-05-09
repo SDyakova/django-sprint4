@@ -1,7 +1,10 @@
+from django.db.models import Count
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.http import Http404
 from django.shortcuts import get_object_or_404, render, redirect
+from django.utils import timezone
 
 from .forms import PostForm, UserEditForm, CommentForm
 from .models import Category, Post, Comment
@@ -42,8 +45,17 @@ def category_posts(request, category_slug):
 
 def post_detail(request, post_id):
     """Страница отдельной публикации."""
-    post = get_object_or_404(get_published_posts(), pk=post_id)
-    comments = post.comment_set.all()
+    post = get_object_or_404(Post, pk=post_id)
+
+    if not post.category.is_published:
+        if request.user != post.author:
+            raise Http404("Пост не найден")
+
+    if not post.is_published or post.pub_date > timezone.now():
+        if request.user != post.author:
+            raise Http404("Пост не найден")
+
+    comments = post.comments.all()
     form = CommentForm()
     return render(
         request,
@@ -59,7 +71,11 @@ def post_detail(request, post_id):
 def profile(request, username):
     """Страница пользователя."""
     user = get_object_or_404(User, username=username)
-    post_list = get_published_posts().filter(author=user)
+    post_list = (
+        Post.objects.filter(author=user)
+        .annotate(comment_count=Count("comments"))
+        .order_by("-pub_date")
+    )
     paginator = Paginator(post_list, 10)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
@@ -121,6 +137,7 @@ def edit_post(request, post_id):
 
 @login_required
 def delete_post(request, post_id):
+    """Удаление публикации."""
     post = get_object_or_404(Post, pk=post_id)
     if post.author != request.user:
         return redirect("blog:post_detail", post_id=post_id)
@@ -134,6 +151,7 @@ def delete_post(request, post_id):
 
 @login_required
 def add_comment(request, post_id):
+    """Добавление комментария."""
     post = get_object_or_404(Post, pk=post_id)
     if request.method == "POST":
         form = CommentForm(request.POST)
@@ -147,10 +165,10 @@ def add_comment(request, post_id):
 
 @login_required
 def edit_comment(request, post_id, comment_id):
+    """Редактирование комментария."""
     post = get_object_or_404(Post, pk=post_id)
     comment = get_object_or_404(Comment, pk=comment_id, post=post)
 
-    # Проверяем, что автор комментария — текущий пользователь
     if comment.author != request.user:
         return redirect("blog:post_detail", post_id=post_id)
 
@@ -169,6 +187,7 @@ def edit_comment(request, post_id, comment_id):
 
 @login_required
 def delete_comment(request, post_id, comment_id):
+    """Удаление комментария."""
     post = get_object_or_404(Post, pk=post_id)
     comment = get_object_or_404(Comment, pk=comment_id, post=post)
 
