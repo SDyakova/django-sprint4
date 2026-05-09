@@ -3,8 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, render, redirect
 
-from .forms import PostForm, UserEditForm
-from .models import Category, Post
+from .forms import PostForm, UserEditForm, CommentForm
+from .models import Category, Post, Comment
 from .utils import get_published_posts
 
 User = get_user_model()
@@ -43,7 +43,17 @@ def category_posts(request, category_slug):
 def post_detail(request, post_id):
     """Страница отдельной публикации."""
     post = get_object_or_404(get_published_posts(), pk=post_id)
-    return render(request, "blog/detail.html", {"post": post})
+    comments = post.comment_set.all()
+    form = CommentForm()
+    return render(
+        request,
+        "blog/detail.html",
+        {
+            "post": post,
+            "comments": comments,
+            "form": form,
+        },
+    )
 
 
 def profile(request, username):
@@ -120,3 +130,53 @@ def delete_post(request, post_id):
         return redirect("blog:profile", username=request.user.username)
 
     return render(request, "blog/create.html", {"post": post})
+
+
+@login_required
+def add_comment(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+    if request.method == "POST":
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.author = request.user
+            comment.post = post
+            comment.save()
+    return redirect("blog:post_detail", post_id=post_id)
+
+
+@login_required
+def edit_comment(request, post_id, comment_id):
+    post = get_object_or_404(Post, pk=post_id)
+    comment = get_object_or_404(Comment, pk=comment_id, post=post)
+
+    # Проверяем, что автор комментария — текущий пользователь
+    if comment.author != request.user:
+        return redirect("blog:post_detail", post_id=post_id)
+
+    if request.method == "POST":
+        form = CommentForm(request.POST, instance=comment)
+        if form.is_valid():
+            form.save()
+            return redirect("blog:post_detail", post_id=post_id)
+    else:
+        form = CommentForm(instance=comment)
+
+    return render(
+        request, "blog/comment.html", {"form": form, "comment": comment}
+    )
+
+
+@login_required
+def delete_comment(request, post_id, comment_id):
+    post = get_object_or_404(Post, pk=post_id)
+    comment = get_object_or_404(Comment, pk=comment_id, post=post)
+
+    if comment.author != request.user:
+        return redirect("blog:post_detail", post_id=post_id)
+
+    if request.method == "POST":
+        comment.delete()
+        return redirect("blog:post_detail", post_id=post_id)
+
+    return render(request, "blog/comment.html", {"comment": comment})
