@@ -1,14 +1,13 @@
-from django.core.paginator import Paginator
-from django.shortcuts import (
-    get_object_or_404,
-    render,
-    redirect,
-)  # ← добавить redirect
 from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from django.shortcuts import get_object_or_404, render, redirect
 
+from .forms import PostForm, UserEditForm
 from .models import Category
 from .utils import get_published_posts
-from .forms import UserEditForm
+
+User = get_user_model()
 
 
 def index(request):
@@ -48,7 +47,7 @@ def post_detail(request, post_id):
 
 
 def profile(request, username):
-    User = get_user_model()
+    """Страница пользователя."""
     user = get_object_or_404(User, username=username)
     post_list = get_published_posts().filter(author=user)
     paginator = Paginator(post_list, 10)
@@ -64,10 +63,9 @@ def profile(request, username):
     )
 
 
+@login_required
 def edit_profile(request):
-    if not request.user.is_authenticated:
-        return redirect("login")
-
+    """Редактирование профиля пользователя."""
     if request.method == "POST":
         form = UserEditForm(request.POST, instance=request.user)
         if form.is_valid():
@@ -75,5 +73,19 @@ def edit_profile(request):
             return redirect("blog:profile", username=request.user.username)
     else:
         form = UserEditForm(instance=request.user)
-
     return render(request, "blog/user.html", {"form": form})
+
+
+@login_required
+def create_post(request):
+    """Создание новой публикации."""
+    if request.method == "POST":
+        form = PostForm(request.POST, request.FILES)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user
+            post.save()
+            return redirect("blog:profile", username=request.user.username)
+    else:
+        form = PostForm()
+    return render(request, "blog/create.html", {"form": form})
