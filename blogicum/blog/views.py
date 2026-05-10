@@ -55,7 +55,7 @@ def post_detail(request, post_id):
         if request.user != post.author:
             raise Http404("Пост не найден")
 
-    comments = post.comments.all()
+    comments = post.comments.filter(is_published=True)
     form = CommentForm()
     return render(
         request,
