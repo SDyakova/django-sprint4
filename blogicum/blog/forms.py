@@ -15,9 +15,19 @@ class UserEditForm(forms.ModelForm):
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ["title", "text", "pub_date", "location", "category", "image"]
+        fields = [
+            "title",
+            "text",
+            "pub_date",
+            "location",
+            "category",
+            "image",
+            "is_published",
+        ]
         widgets = {
-            "pub_date": forms.DateTimeInput(attrs={"type": "datetime-local"}),
+            "pub_date": forms.DateTimeInput(
+                attrs={"type": "datetime-local"}, format="%Y-%m-%d %H:%M:%S"
+            ),
         }
 
 
