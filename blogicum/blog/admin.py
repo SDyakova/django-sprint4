@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Category, Location, Post
+from .models import Category, Comment, Location, Post
 
 
 @admin.register(Category)
@@ -68,3 +68,11 @@ class PostAdmin(admin.ModelAdmin):
         return "Нет изображения"
 
     image_preview.short_description = "Превью"
+
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ("text", "author", "post", "created_at", "is_published")
+    list_editable = ("is_published",)
+    list_filter = ("is_published", "author", "created_at")
+    search_fields = ("text", "author__username", "post__title")
