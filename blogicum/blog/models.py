@@ -1,12 +1,15 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 
+from .constants import MAX_COMMENT_TEXT_LENGTH, MAX_TITLE_LENGTH
+
 User = get_user_model()
 
 
 class PublishedCreatedModel(models.Model):
     """
     Абстрактная модель.
+
     Добавляет флаги публикации и дату создания.
     """
 
@@ -34,9 +37,10 @@ class Category(PublishedCreatedModel):
         max_length=50,
         unique=True,
         verbose_name="Идентификатор",
-        help_text="Идентификатор страницы для URL; "
-        "разрешены символы латиницы, цифры, "
-        "дефис и подчёркивание.",
+        help_text=(
+            "Идентификатор страницы для URL; "
+            "разрешены символы латиницы, цифры, дефис и подчёркивание."
+        ),
     )
 
     class Meta:
@@ -44,7 +48,7 @@ class Category(PublishedCreatedModel):
         verbose_name_plural = "Категории"
 
     def __str__(self):
-        return self.title[:30]
+        return self.title[:MAX_TITLE_LENGTH]
 
 
 class Location(PublishedCreatedModel):
@@ -58,7 +62,7 @@ class Location(PublishedCreatedModel):
         verbose_name_plural = "Местоположения"
 
     def __str__(self):
-        return self.name[:30]
+        return self.name[:MAX_TITLE_LENGTH]
 
 
 class Post(PublishedCreatedModel):
@@ -105,7 +109,7 @@ class Post(PublishedCreatedModel):
         default_related_name = "posts"
 
     def __str__(self):
-        return self.title[:30]
+        return self.title[:MAX_TITLE_LENGTH]
 
 
 class Comment(PublishedCreatedModel):
@@ -128,4 +132,4 @@ class Comment(PublishedCreatedModel):
         ordering = ("created_at",)
 
     def __str__(self):
-        return self.text[:20]
+        return f"{self.author.username}: {self.text[:MAX_COMMENT_TEXT_LENGTH]}"
